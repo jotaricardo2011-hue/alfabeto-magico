@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#3b82f6">
+<title>Alfabeto Mágico</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Alfabeto">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{font-family:'Baloo 2',system-ui,sans-serif;color:#1e293b;background:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 55%,#fef3c7 100%);overflow:hidden;user-select:none}
+.tela{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(16px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom))}
+.topo{width:100%;max-width:460px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.estrelas{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:800;font-size:22px;box-shadow:0 4px 0 #0001}
+.estrelas b{font-size:26px}
+.btn-volta{width:48px;height:48px;border:none;border-radius:50%;background:#fff;font-size:24px;box-shadow:0 4px 0 #0001;cursor:pointer}
+h1{font-size:40px;line-height:1;color:#fff;text-shadow:0 3px 0 #1d4ed8,0 6px 14px #0003;text-align:center;margin-top:26px}
+.ola{font-size:24px;font-weight:700;color:#1e3a8a;margin-top:10px;text-align:center}
+.mundos{width:100%;max-width:460px;display:grid;gap:clamp(10px,1.6vh,14px);margin-top:clamp(14px,3vh,28px)}
+.mundo{display:flex;align-items:center;gap:16px;border:none;border-radius:26px;padding:16px 20px;font-family:inherit;text-align:left;cursor:pointer;color:#fff;box-shadow:0 7px 0 #0002;transition:transform .1s}
+.mundo:active{transform:translateY(4px);box-shadow:0 3px 0 #0002}
+.mundo .ic{width:66px;height:66px;border-radius:20px;background:#fff3;display:grid;place-items:center;font-size:36px;font-weight:800;flex:none}
+.mundo .tx{font-size:26px;font-weight:800;line-height:1.05}
+.mundo .tx small{display:block;font-size:16px;font-weight:600;opacity:.9}
+.m1{background:#f97316}.m4{background:linear-gradient(100deg,#ef4444,#f59e0b 35%,#22c55e 65%,#3b82f6)}.m2{background:#a855f7}.m3{background:#10b981}
+.mundo.trancado{filter:grayscale(.6);opacity:.75}
+.sol{position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:#fde047;box-shadow:0 0 60px #fde047;z-index:-1}
+.nuvem{position:absolute;background:#fff;border-radius:50px;opacity:.85;z-index:-1}
+
+/* jogo */
+.progresso{flex:1;height:16px;background:#fff8;border-radius:99px;overflow:hidden}
+.progresso i{display:block;height:100%;width:0;background:#22c55e;border-radius:99px;transition:width .4s}
+.cartao{width:100%;max-width:460px;margin-top:20px;background:#fff;border-radius:32px;padding:18px 16px 22px;text-align:center;box-shadow:0 8px 0 #0001;position:relative}
+.figura{font-size:110px;line-height:1.15;cursor:pointer;display:inline-block}
+.palavra{font-size:46px;font-weight:800;letter-spacing:3px;color:#334155}
+.palavra .falta{display:inline-block;min-width:44px;border-bottom:5px solid #f97316;color:#f97316}
+.ouvir{margin-top:6px;border:none;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:6px 18px;font-family:inherit;font-weight:700;font-size:18px;cursor:pointer}
+.pergunta{font-size:22px;font-weight:700;color:#1e3a8a;margin-top:18px;text-align:center}
+.opcoes{width:100%;max-width:460px;display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.op{height:104px;border:none;border-radius:26px;font-family:inherit;font-size:64px;font-weight:800;color:#fff;cursor:pointer;box-shadow:0 7px 0 #0002;transition:transform .1s}
+.op:active{transform:translateY(4px);box-shadow:0 3px 0 #0002}
+.op:nth-child(1){background:#3b82f6}.op:nth-child(2){background:#ec4899}.op:nth-child(3){background:#f59e0b}.op:nth-child(4){background:#8b5cf6}
+.op.certo{background:#22c55e!important;animation:pula .5s}
+.op.errado{background:#cbd5e1!important;animation:treme .4s}
+@keyframes treme{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes pula{40%{transform:scale(1.12)}}
+.elogio{position:absolute;left:0;right:0;top:-26px;font-size:30px;font-weight:800;color:#16a34a;opacity:0;transition:.3s}
+.elogio.v{opacity:1;top:-44px}
+.voa{position:fixed;font-size:44px;z-index:9;pointer-events:none;transition:all .8s cubic-bezier(.5,-0.3,.7,1)}
+
+/* fim */
+.fim-estrelas{font-size:70px;margin-top:30px;display:flex;gap:6px}
+.fim-estrelas span{animation:surge .5s both}
+.fim-estrelas span:nth-child(2){animation-delay:.3s}.fim-estrelas span:nth-child(3){animation-delay:.6s}
+.fim-estrelas .apagada{filter:grayscale(1);opacity:.35}
+@keyframes surge{from{transform:scale(0) rotate(-90deg)}to{transform:scale(1)}}
+.grande{margin-top:22px;border:none;border-radius:24px;padding:14px 30px;font-family:inherit;font-size:26px;font-weight:800;color:#fff;background:#22c55e;box-shadow:0 7px 0 #15803d;cursor:pointer;min-width:240px}
+.grande.sec{background:#fff;color:#1e3a8a;box-shadow:0 7px 0 #0002}
+#t-jogo .cartao{margin-top:auto}#t-jogo .opcoes{margin-bottom:auto}
+/* cabe em qualquer altura: tudo encolhe pela altura (vh) e pela largura (vw) */
+.tela{overflow-y:auto}
+#t-jogo .cartao{padding:clamp(8px,2vh,18px) 16px clamp(10px,2.4vh,22px)}
+.figura{font-size:clamp(54px,min(13vh,26vw),110px)}
+.palavra{font-size:clamp(24px,min(6vh,9vw),46px);letter-spacing:.06em;line-height:1.2}
+.palavra .falta{min-width:.9em;border-bottom-width:.1em;line-height:1}
+.ouvir{font-size:clamp(14px,2.2vh,18px);padding:clamp(3px,.8vh,6px) 18px}
+.pergunta{font-size:clamp(17px,2.8vh,22px);margin-top:clamp(6px,2vh,18px)}
+.opcoes{gap:clamp(8px,1.6vh,14px);margin-top:clamp(6px,1.6vh,14px)}
+.op{height:clamp(58px,12vh,104px);font-size:clamp(36px,7.5vh,64px)}
+#t-fim{justify-content:center}#t-fim h1{margin-top:0}
+.trofeu{font-size:110px;line-height:1;animation:surge .6s both}
+.figura.conta{display:grid;grid-template-columns:repeat(5,auto);justify-content:center;gap:2px 6px;font-size:clamp(30px,min(6vh,11vw),50px);line-height:1.15;padding:6px 0}
+.figura.conta span{animation:surge .35s both}
+.palavra .falta.larga{min-width:1.7em}
+.op.multi{font-size:clamp(30px,6vh,52px)}
+canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:8}
+.inicio-nome{margin-top:24px;width:100%;max-width:340px;text-align:center}
+.inicio-nome input{width:100%;font-family:inherit;font-size:26px;font-weight:700;text-align:center;border:none;border-radius:20px;padding:12px;box-shadow:0 5px 0 #0001;outline:none}
+</style>
+</head>
+<body>
+<canvas id="confete"></canvas>
+
+<!-- INÍCIO -->
+<section class="tela" id="t-inicio">
+  <div class="sol"></div>
+  <div class="nuvem" style="width:120px;height:44px;left:-20px;top:120px"></div>
+  <div class="nuvem" style="width:90px;height:34px;right:30px;top:200px"></div>
+  <div class="topo"><span></span><div class="estrelas"><b>⭐</b><span class="n-estrelas">0</span></div></div>
+  <h1>Alfabeto<br>Mágico</h1>
+  <p class="ola" id="ola"></p>
+  <div class="inicio-nome" id="pede-nome" hidden>
+    <input id="campo-nome" maxlength="20" placeholder="Seu nome">
+    <button class="grande" id="salva-nome">Começar</button>
+  </div>
+  <div class="mundos" id="mundos">
+    <button class="mundo m1" data-mundo="letras"><span class="ic">ABC</span><span class="tx">Letras<small>Com que letra começa?</small></span></button>
+    <button class="mundo m2" data-mundo="silabas"><span class="ic">BA</span><span class="tx">Sílabas<small>Com que sílaba começa?</small></span></button>
+    <button class="mundo m3" data-mundo="numeros"><span class="ic">123</span><span class="tx">Números<small>Quantos tem?</small></span></button>
+    <button class="mundo m4" data-mundo="cores"><span class="ic">🎨</span><span class="tx">Cores<small>De que cor é?</small></span></button>
+  </div>
+</section>
+
+<!-- JOGO -->
+<section class="tela" id="t-jogo" hidden>
+  <div class="topo">
+    <button class="btn-volta" id="volta" aria-label="Voltar">✕</button>
+    <div class="progresso"><i id="barra"></i></div>
+    <div class="estrelas"><b>⭐</b><span class="n-estrelas">0</span></div>
+  </div>
+  <div class="cartao">
+    <div class="elogio" id="elogio"></div>
+    <div class="figura" id="figura"></div>
+    <div class="palavra" id="palavra"></div>
+    <button class="ouvir" id="ouvir">🔊 Ouvir de novo</button>
+  </div>
+  <p class="pergunta" id="pergunta">Com que letra começa?</p>
+  <div class="opcoes" id="opcoes"></div>
+</section>
+
+<!-- FIM -->
+<section class="tela" id="t-fim" hidden>
+  <div class="trofeu">🏆</div>
+  <h1 id="fim-titulo">Parabéns!</h1>
+  <div class="fim-estrelas" id="fim-estrelas"></div>
+  <p class="ola" id="fim-texto"></p>
+  <button class="grande" id="denovo">Jogar de novo</button>
+  <button class="grande sec" id="menu">Início</button>
+</section>
+
+<script>
+const CHAVE='alfa_';
+const $=s=>document.querySelector(s);
+const salvo=(k,v)=>v===undefined?JSON.parse(localStorage.getItem(CHAVE+k)||'null'):localStorage.setItem(CHAVE+k,JSON.stringify(v));
+
+// nome via ?nome=
+const pNome=new URLSearchParams(location.search).get('nome');
+if(pNome) salvo('nome',pNome.trim().slice(0,20));
+let nome=salvo('nome')||'';
+let total=salvo('estrelas')||0;
+
+const PALAVRAS=[
+ ['A','ABELHA','🐝'],['B','BOLA','⚽'],['C','CASA','🏠'],['D','DADO','🎲'],['E','ELEFANTE','🐘'],
+ ['F','FOCA','🦭'],['G','GATO','🐱'],['H','HIPOPÓTAMO','🦛'],['I','IGREJA','⛪'],['J','JACARÉ','🐊'],
+ ['L','LEÃO','🦁'],['M','MAÇÃ','🍎'],['N','NAVIO','🚢'],['O','OVO','🥚'],['P','PATO','🦆'],
+ ['Q','QUEIJO','🧀'],['R','RATO','🐭'],['S','SOL','☀️'],['T','TARTARUGA','🐢'],['U','UVA','🍇'],
+ ['V','VACA','🐮'],['X','XÍCARA','☕'],['Z','ZEBRA','🦓']];
+const LETRAS=PALAVRAS.map(p=>p[0]);
+// sílabas: a palavra separada; a 1ª sílaba é a que falta (tem de bater com gerar_audios.py)
+const SILABAS=[
+ [['BO','LA'],'⚽'],[['CA','SA'],'🏠'],[['DA','DO'],'🎲'],[['GA','TO'],'🐱'],[['PA','TO'],'🦆'],
+ [['VA','CA'],'🐮'],[['MA','CA','CO'],'🐒'],[['SA','PO'],'🐸'],[['FO','CA'],'🦭'],[['RA','TO'],'🐭'],
+ [['LU','A'],'🌙'],[['ZE','BRA'],'🦓'],[['JA','CA','RÉ'],'🐊'],[['BO','NE','CA'],'🪆'],[['PI','PA'],'🪁'],
+ [['CO','PO'],'🥤'],[['LI','MÃO'],'🍋'],[['PE','RA'],'🍐'],[['TO','MA','TE'],'🍅'],[['CA','VA','LO'],'🐴'],
+ [['BA','NA','NA'],'🍌'],[['DE','DO'],'☝️'],[['MU','LA'],'🫏'],[['NU','VEM'],'☁️']];
+const PRIMEIRAS=[...new Set(SILABAS.map(s=>s[0][0]))];
+// números: objetos para contar
+const OBJETOS=[['bolas','⚽'],['macas','🍎'],['patinhos','🐥'],['flores','🌸'],['peixinhos','🐟'],['carrinhos','🚗'],['borboletas','🦋'],['bananas','🍌']];
+// cores: [chave, nome na tela, cor do botão, cor do texto]
+const CORES={vermelho:['Vermelho','#ef4444','#fff'],amarelo:['Amarelo','#facc15','#713f12'],verde:['Verde','#22c55e','#fff'],azul:['Azul','#3b82f6','#fff'],laranja:['Laranja','#f97316','#fff'],roxo:['Roxo','#8b5cf6','#fff'],rosa:['Rosa','#f472b6','#fff'],marrom:['Marrom','#92400e','#fff'],preto:['Preto','#1f2937','#fff'],branco:['Branco','#ffffff','#334155']};
+const COISAS=[['maca','MAÇÃ','🍎','vermelho'],['morango','MORANGO','🍓','vermelho'],['banana','BANANA','🍌','amarelo'],['pintinho','PINTINHO','🐥','amarelo'],
+ ['sapo','SAPO','🐸','verde'],['brocolis','BRÓCOLIS','🥦','verde'],['baleia','BALEIA','🐳','azul'],['cenoura','CENOURA','🥕','laranja'],['laranja','LARANJA','🍊','laranja'],
+ ['uva','UVA','🍇','roxo'],['berinjela','BERINJELA','🍆','roxo'],['porquinho','PORQUINHO','🐷','rosa'],['flor','FLOR','🌸','rosa'],['urso','URSO','🐻','marrom'],
+ ['chocolate','CHOCOLATE','🍫','marrom'],['gato','GATO PRETO','🐈‍⬛','preto'],['nuvem','NUVEM','☁️','branco'],['ovelha','OVELHA','🐑','branco']];
+const ELOGIOS=['Muito bem!','Isso aí!','Parabéns!','Que esperto!','Arrasou!','Acertou!'];
+const RODADAS=10;
+const embaralha=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+const outras=(lista,certa,n=3)=>embaralha(lista.filter(x=>x!==certa)).slice(0,n);
+const verde=t=>`<span class="falta" style="color:#16a34a;border-color:#16a34a">${t}</span>`;
+
+// cada mundo gera 10 rodadas: {fig, conta, pal, palOk, certa, ops, rotulo, estilo, q, c, e}
+const MUNDOS={
+ letras:{pergunta:'Com que letra começa?',gera:()=>embaralha(PALAVRAS).slice(0,RODADAS).map(([l,p,emo])=>({
+   fig:emo,pal:`<span class="falta">?</span>${p.slice(1)}`,palOk:verde(l)+p.slice(1),certa:l,ops:embaralha([l,...outras(LETRAS,l)]),
+   q:'q_'+l,c:'c_'+l,e:o=>'e_'+o}))},
+ silabas:{pergunta:'Com que sílaba começa?',gera:()=>embaralha(SILABAS).slice(0,RODADAS).map(([s,emo])=>{const w=s.join(''),a=s[0];return{
+   fig:emo,pal:`<span class="falta larga">?</span>${s.slice(1).join('')}`,palOk:verde(a)+s.slice(1).join(''),certa:a,ops:embaralha([a,...outras(PRIMEIRAS,a)]),multi:true,
+   q:'sq_'+w,c:'sc_'+w,e:o=>'se_'+o}})},
+ numeros:{pergunta:'Quantos tem?',gera:()=>embaralha([1,2,3,4,5,6,7,8,9,10]).map(n=>{const [k,emo]=OBJETOS[Math.floor(Math.random()*OBJETOS.length)];
+   const ops=embaralha([n,...outras([1,2,3,4,5,6,7,8,9,10],n)]).map(String);return{
+   fig:Array.from({length:n},(_,i)=>`<span style="animation-delay:${i*.06}s">${emo}</span>`).join(''),conta:true,pal:'',palOk:verde(n),certa:String(n),ops,
+   q:'nq_'+k,c:'nc_'+n,e:o=>'ne_'+o}})},
+ cores:{pergunta:'De que cor é?',gera:()=>embaralha(COISAS).slice(0,RODADAS).map(([k,nome,emo,cor])=>({
+   fig:emo,pal:nome,palOk:nome,certa:cor,ops:embaralha([cor,...outras(Object.keys(CORES),cor)]),
+   rotulo:c=>CORES[c][0],estilo:c=>`background:${CORES[c][1]}!important;color:${CORES[c][2]};${c==='branco'?'border:3px solid #cbd5e1;':''}`,multi:true,
+   q:'kq_'+k,c:'kc_'+cor,e:o=>'ke_'+o}))},
+};
+
+// ---------- voz (áudios gravados em audio/, gerados por gerar_audios.py) ----------
+const player=new Audio();let filaVoz=[];
+player.onended=()=>{if(filaVoz.length){player.src=`audio/${filaVoz.shift()}.mp3`;player.play().catch(()=>{})}};
+function toca(...nomes){filaVoz=nomes.slice(1);player.pause();player.src=`audio/${nomes[0]}.mp3`;player.play().catch(()=>{})}
+function para(){filaVoz=[];player.pause()}
+
+// ---------- sons ----------
+let ac=null;
+function som(tipo){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const notas=tipo==='certo'?[660,880,1320]:tipo==='fim'?[523,659,784,1047]:[220,180];notas.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=tipo==='errado'?'square':'triangle';o.frequency.value=f;const t=ac.currentTime+i*.11;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.3)})}catch(e){}}
+
+// ---------- telas ----------
+function mostra(id){document.querySelectorAll('.tela').forEach(t=>t.hidden=t.id!==id)}
+function atualizaEstrelas(){document.querySelectorAll('.n-estrelas').forEach(e=>e.textContent=total)}
+function inicio(){
+  mostra('t-inicio');atualizaEstrelas();
+  $('#ola').textContent=nome?`Olá, ${nome}! 👋`:'Olá! Qual é o seu nome?';
+  $('#pede-nome').hidden=!!nome;$('#mundos').hidden=!nome;
+}
+$('#salva-nome').onclick=()=>{const v=$('#campo-nome').value.trim();if(!v)return;nome=v.slice(0,20);salvo('nome',nome);inicio();toca('ola')};
+document.querySelectorAll('.mundo').forEach(b=>b.onclick=()=>joga(b.dataset.mundo));
+
+// ---------- partida ----------
+let mundo='letras',fila=[],rodada=0,erros=0,errouAgora=false,travado=false,atual=null;
+function joga(m){mundo=m;fila=MUNDOS[m].gera();rodada=0;erros=0;$('#pergunta').textContent=MUNDOS[m].pergunta;mostra('t-jogo');proxima()}
+function proxima(){
+  if(rodada>=RODADAS)return fim();
+  atual=fila[rodada];errouAgora=false;travado=false;
+  $('#barra').style.width=(rodada/RODADAS*100)+'%';
+  $('#figura').className='figura'+(atual.conta?' conta':'');
+  $('#figura').innerHTML=atual.fig;
+  $('#palavra').innerHTML=atual.pal;$('#palavra').hidden=!atual.pal;
+  $('#opcoes').innerHTML=atual.ops.map(o=>`<button class="op${atual.multi?' multi':''}" data-l="${o}" style="${atual.estilo?atual.estilo(o):''}">${atual.rotulo?atual.rotulo(o):o}</button>`).join('');
+  document.querySelectorAll('.op').forEach(b=>b.onclick=()=>escolhe(b));
+  setTimeout(()=>toca(atual.q),250);
+}
+$('#ouvir').onclick=$('#figura').onclick=()=>atual&&toca(atual.q);
+function escolhe(b){
+  if(travado)return;
+  if(b.dataset.l===atual.certa){
+    travado=true;b.classList.add('certo');som('certo');
+    if(atual.estilo)b.style.outline='6px solid #22c55e';
+    $('#palavra').innerHTML=atual.palOk;$('#palavra').hidden=false;
+    const i=Math.floor(Math.random()*ELOGIOS.length);
+    $('#elogio').textContent=ELOGIOS[i];$('#elogio').classList.add('v');
+    toca('el_'+i,atual.c);
+    if(!errouAgora)voaEstrela(b);
+    rodada++;
+    setTimeout(()=>{$('#elogio').classList.remove('v');proxima()},3200);
+  }else{
+    b.classList.add('errado');b.disabled=true;som('errado');
+    if(atual.estilo)b.style.opacity='.3';
+    if(!errouAgora){erros++;errouAgora=true}
+    toca(atual.e(b.dataset.l));
+  }
+}
+function voaEstrela(origem){
+  const r=origem.getBoundingClientRect(),alvo=document.querySelector('#t-jogo .estrelas').getBoundingClientRect();
+  const s=document.createElement('div');s.className='voa';s.textContent='⭐';
+  s.style.left=r.left+r.width/2-22+'px';s.style.top=r.top+r.height/2-22+'px';document.body.appendChild(s);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{s.style.left=alvo.left+4+'px';s.style.top=alvo.top-4+'px';s.style.transform='scale(.6)'}));
+  setTimeout(()=>{s.remove();total++;salvo('estrelas',total);atualizaEstrelas()},800);
+}
+function fim(){
+  $('#barra').style.width='100%';
+  const n=erros<=1?3:erros<=4?2:1;
+  mostra('t-fim');som('fim');confete();
+  $('#fim-titulo').textContent=`Parabéns, ${nome}!`;
+  $('#fim-estrelas').innerHTML=[1,2,3].map(i=>`<span class="${i>n?'apagada':''}">⭐</span>`).join('');
+  $('#fim-texto').textContent=`Você acertou ${RODADAS-erros} de ${RODADAS} de primeira!`;
+  toca('fim_'+n);
+}
+$('#denovo').onclick=()=>joga(mundo);$('#menu').onclick=inicio;
+$('#volta').onclick=()=>{para();inicio()};
+
+// ---------- confete ----------
+function confete(){
+  const c=$('#confete'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cores=['#f97316','#3b82f6','#ec4899','#22c55e','#facc15','#a855f7'];
+  const p=Array.from({length:120},()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,r:Math.random()*6,cor:cores[Math.floor(Math.random()*6)],a:Math.random()*6}));
+  let t=0;(function anda(){x.clearRect(0,0,c.width,c.height);p.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.a+=.1;x.save();x.translate(q.x,q.y);x.rotate(q.a);x.fillStyle=q.cor;x.fillRect(-4,-7,8+q.r,12);x.restore()});if(++t<220)requestAnimationFrame(anda);else x.clearRect(0,0,c.width,c.height)})();
+}
+
+inicio();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

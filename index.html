@@ -2,8 +2,9 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#3b82f6">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="theme-color" content="#7dd3fc">
+<meta name="color-scheme" content="light">
 <title>Alfabeto Mágico</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -15,8 +16,11 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-html,body{height:100%}
-body{font-family:'Baloo 2',system-ui,sans-serif;color:#1e293b;background:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 55%,#fef3c7 100%);overflow:hidden;user-select:none}
+html,body{height:100%;overscroll-behavior:none}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+body{font-family:'Baloo 2',system-ui,sans-serif;color:#1e293b;background:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 55%,#fef3c7 100%);overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+input{user-select:text;-webkit-user-select:text}
+button{touch-action:manipulation}
 .tela{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;padding:calc(16px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom))}
 .topo{width:100%;max-width:460px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .estrelas{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:800;font-size:22px;box-shadow:0 4px 0 #0001}
@@ -66,7 +70,7 @@ h1{font-size:40px;line-height:1;color:#fff;text-shadow:0 3px 0 #1d4ed8,0 6px 14p
 .grande.sec{background:#fff;color:#1e3a8a;box-shadow:0 7px 0 #0002}
 #t-jogo .cartao{margin-top:auto}#t-jogo .opcoes{margin-bottom:auto}
 /* cabe em qualquer altura: tudo encolhe pela altura (vh) e pela largura (vw) */
-.tela{overflow-y:auto}
+.tela{overflow-y:auto;overscroll-behavior:contain}
 #t-jogo .cartao{padding:clamp(8px,2vh,18px) 16px clamp(10px,2.4vh,22px)}
 .figura{font-size:clamp(54px,min(13vh,26vw),110px)}
 .palavra{font-size:clamp(24px,min(6vh,9vw),46px);letter-spacing:.06em;line-height:1.2}
@@ -83,6 +87,18 @@ h1{font-size:40px;line-height:1;color:#fff;text-shadow:0 3px 0 #1d4ed8,0 6px 14p
 .op.multi{font-size:clamp(22px,min(5.5vh,8vw),48px);padding:0 6px;overflow-wrap:anywhere;line-height:1}
 canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:8}
 .inicio-nome{margin-top:24px;width:100%;max-width:340px;text-align:center}
+/* no celular, vh é a altura com a barra do navegador escondida; svh é a área que aparece de fato.
+   Navegador antigo ignora estas linhas e fica com as de vh acima. */
+.mundos{gap:clamp(10px,1.6svh,14px);margin-top:clamp(14px,3svh,28px)}
+#t-jogo .cartao{padding:clamp(8px,2svh,18px) 16px clamp(10px,2.4svh,22px)}
+.figura{font-size:clamp(54px,min(13svh,26vw),110px)}
+.palavra{font-size:clamp(24px,min(6svh,9vw),46px)}
+.ouvir{font-size:clamp(14px,2.2svh,18px);padding:clamp(3px,.8svh,6px) 18px}
+.pergunta{font-size:clamp(17px,2.8svh,22px);margin-top:clamp(6px,2svh,18px)}
+.opcoes{gap:clamp(8px,1.6svh,14px);margin-top:clamp(6px,1.6svh,14px)}
+.op{height:clamp(58px,12svh,104px);font-size:clamp(36px,7.5svh,64px)}
+.figura.conta{font-size:clamp(30px,min(6svh,11vw),50px)}
+.op.multi{font-size:clamp(22px,min(5.5svh,8vw),48px)}
 .inicio-nome input{width:100%;font-family:inherit;font-size:26px;font-weight:700;text-align:center;border:none;border-radius:20px;padding:12px;box-shadow:0 5px 0 #0001;outline:none}
 </style>
 </head>
@@ -98,7 +114,7 @@ canvas#confete{position:fixed;inset:0;pointer-events:none;z-index:8}
   <h1>Alfabeto<br>Mágico</h1>
   <p class="ola" id="ola"></p>
   <div class="inicio-nome" id="pede-nome" hidden>
-    <input id="campo-nome" maxlength="20" placeholder="Seu nome">
+    <input id="campo-nome" maxlength="20" placeholder="Seu nome" autocomplete="off" autocapitalize="words" enterkeyhint="go">
     <button class="grande" id="salva-nome">Começar</button>
   </div>
   <div class="mundos" id="mundos">
@@ -213,6 +229,7 @@ function inicio(){
   $('#pede-nome').hidden=!!nome;$('#mundos').hidden=!nome;
 }
 $('#salva-nome').onclick=()=>{const v=$('#campo-nome').value.trim();if(!v)return;nome=v.slice(0,20);salvo('nome',nome);inicio();toca('ola')};
+$('#campo-nome').onkeydown=e=>{if(e.key==='Enter')$('#salva-nome').click()};
 document.querySelectorAll('.mundo').forEach(b=>b.onclick=()=>joga(b.dataset.mundo));
 
 // ---------- partida ----------
